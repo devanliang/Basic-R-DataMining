@@ -1,0 +1,260 @@
+---
+title: "Rbasic"
+output: html_document
+---
+
+```{R}
+# vector
+x <- rep(TRUE, 5)
+x
+
+x[1] <- 2
+x
+
+x[1] <- "a"
+x
+
+x <- c(2, "two", FALSE)
+x
+
+# factor
+speed <- c('慢','快','極快','中')
+speed
+
+speedFactor <- factor(speed)
+speedFactor
+
+speedFactor[1]
+
+speedFactor[2]
+
+speedFactor[1] > speedFactor[2]
+
+speedFactor1 <- factor(speed, order=TRUE, levels = c('慢','快','極快','中'))
+speedFactor1
+
+speedFactor[1]
+
+speedFactor[2]
+
+speedFactor[1] > speedFactor[2]
+
+class(speedFactor1)
+
+# Data Frame
+y = data.frame(ID=c(3, 4, 5 ), name=c("Tom", "Mary", "Ann"), Birthday=as.Date(c("1990-12-20","1950-12-05","1995-01-05")))
+y
+
+y$name
+
+y$name[3]
+
+y[,c(2,3)]
+
+# cbind, rbind
+z = data.frame(cell_phone=c('0912345678','0987654321','0945678912'))
+z
+
+cbind(y,z)
+
+x = data.frame(ID=6, name="Wong", Birthday=as.Date("1999-01-05"))
+rbind(y,x)
+
+# 每筆的第三欄
+y[,3]
+# 第 2 row
+y[2,]
+
+class(speedFactor1)
+
+# Z-SCORE
+data <- c(1,2,3,6,3)
+scale(data, center = T, scale = F)
+scale(data, center = T, scale = T)
+
+a <- scale(data, center = T, scale = T)
+attributes(a)
+
+# 安裝mice 遺漏值處理套件
+install.packages("mice")
+
+require(mice)
+
+# 遺漏值檢查
+tmp <- c(2,3,8,NA,4,NA,9,12,NA)
+is.na(tmp)
+
+any(is.na(tmp))
+
+sum(is.na(tmp))
+
+is.nan(0/0)
+
+is.infinite(1/0)
+
+summary(tmp)
+
+require(mice)
+
+# 產生遺漏值
+install.packages("missForest")
+require(missForest)
+
+data <- prodNA(iris, noNA = 0.05)
+
+complete.cases(data)
+
+# 檢視遺漏值
+summary(data)
+md.pattern(data)
+
+install.packages("VIM") # 檢視遺漏值套件
+require(VIM)
+
+aggr_plot <- aggr(data, col = c('navyblue', 'red'), numbers=TRUE, sortVars=TRUE, labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data", "Pattern"))
+
+# 刪除所有遺漏值資料
+complete.cases(data)
+new_data <- data[complete.cases(data),]
+summary(data)
+
+# 平均數取代遺漏值
+# 算出各欄的平均數
+new_data1 <- data
+new_data1.mean_col_1 <- mean(new_data1[, 1], na.rm = T)
+new_data1.mean_col_2 <- mean(new_data1[, 2], na.rm = T)
+new_data1.mean_col_3 <- mean(new_data1[, 3], na.rm = T)
+new_data1.mean_col_4 <- mean(new_data1[, 4], na.rm = T)
+
+# 取出各欄位中有遺漏值的“列位置
+na.rows1 <- is.na(new_data1[, 1])
+na.rows2 <- is.na(new_data1[, 2])
+na.rows3 <- is.na(new_data1[, 3])
+na.rows4 <- is.na(new_data1[, 4])
+
+# 用平均數取代遺漏值
+new_data1[na.rows1,1] <- new_data1.mean_col_1
+new_data1[na.rows2,2] <- new_data1.mean_col_2
+new_data1[na.rows3,3] <- new_data1.mean_col_3
+new_data1[na.rows4,4] <- new_data1.mean_col_4
+
+summary(new_data1)
+summary(data)
+
+# 利用資料探勘來取代遺漏值
+mice.data <- mice(data, m = 3, maxit = 30, method = "cart", seed = 188)
+
+new_data1 <- complete(mice.data, 1)
+new_data2 <- complete(mice.data, 2)
+new_data3 <- complete(mice.data, 3)
+Training_data_set <- new_data2
+kmeans(Training_data_set[-5] , nstart=20, centers=5)
+mice.data <- mice(data, m = 3, maxit = 30, method = "rf", seed = 188)
+
+# 將速度分成3類,
+# 第一類 speed<12 ; 第二類 speed <15 ; 第三類 speed >= 15
+cars$speed
+x1 = cars$speed
+new_cars_band = 1*(x1<12) + 2*(x1>=12 & x1<15) + 3*(x1>=15)
+new_cars_band
+# 將數字標籤轉成文字
+label = c('慢','中','快')
+new_cars_band = label[new_cars_band]
+new_cars_band
+
+
+# within就像是SQL語法中的Case When
+# 將速度分成3類, 慢: speed<12 ; 中: speed <15 ; 快 speed >= 15
+new_cars <- cars
+new_cars <- within(new_cars,
+                     {
+                       speed_level <- NA    #一定要指定一個值
+                       speed_level[cars$speed<12] <- "慢"
+                       speed_level[cars$speed>=12 & cars$speed<15] <- "中"
+                       speed_level[cars$speed>=15] <- "快"
+                     }
+)
+head(new_cars,5)
+
+
+# 產生新欄位 transform
+new_cars <- cars
+new_cars <- transform(new_cars,
+            new_var1 = new_cars$speed * new_cars$dist ,
+            new_var2 = new_cars$dist * 100
+)
+head(new_cars,10)
+str(new_cars)
+
+
+# sort
+data(cars)
+cars$speed
+sort(cars$speed, dec=T) #降冪排序 dec=T
+
+# rank 傳回各元素的排名
+math_score <- c(100,99,47,76,92)
+math_score
+rank(math_score)
+abs(rank(math_score) -5) +1
+
+
+# merge()，如同SQL語法中的 join
+# 先建立資料
+a <- data.frame(T_name=c('Tony','Orozco','Justin'), Age=c(25,24,26))
+a
+
+b <- data.frame(T_name=c('Tony','Orozco','Justin','Carol'),
+                  Salary=c(20000,25000,30000,18000) )
+b
+
+# merge()，如同SQL語法中的 join
+#預設是 inner join
+merge( a , b, by.x="T_name", by.y="T_name")
+
+# all.x=TRUE就是 left join
+merge(b, a, by.x="T_name", by.y="T_name", all.x=TRUE)
+
+# all.y=TRUE就是 right join
+merge(b, a, by.x="T_name", by.y="T_name", all.y=TRUE)
+
+# all.x=TRUE , all.y=TRUE就是 full join
+merge(b, a, by.x="T_name", by.y="T_name", all.x=TRUE , all.y=TRUE)
+
+# 下SQL語法 
+install.packages("sqldf")
+library(sqldf)
+sqldf("SELECT * FROM iris")
+sqldf("SELECT Species,count(*)as cnt FROM iris group by Species")
+
+# sqldf的結果回傳是data.frame
+class( sqldf("SELECT Species,count(*)as cnt FROM iris group by Species") )
+sqldf("SELECT Species,count(*)as cnt FROM iris group by Species")
+
+# SQL取最大值、最小值與平均值
+sqldf("SELECT max([Sepal.Length]), min([Sepal.Length]), avg([Sepal.Length]) FROM iris" )
+
+# 資料切割
+data(chickwts)
+str(chickwts)
+table(chickwts$feed)
+
+#將資料 by feed分成6小群
+splt1 = split(chickwts$weight, chickwts$feed)
+splt1
+
+
+# 用指標協助資料切割
+chickwts[,2]  #資料筆數全要, 但只要第二欄
+
+chickwts[1,] #只取一筆資料，但欄位全要
+
+#搭配sample函式隨機切割資料
+chickwts[ sample(1:nrow(chickwts) ,5, replace= F), ] #隨機取5筆資料，但欄位全要
+
+#使用 rownames做為切割條件
+iris
+rownames(iris)
+#切割rownames是7的倍數的觀察值
+iris[ as.integer(rownames(iris))%% 7 == 0, ]
+```
