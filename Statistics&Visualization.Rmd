@@ -1,0 +1,329 @@
+---
+title: "main2_0413"
+output: html_document
+---
+
+# 
+# p.318
+```{R}
+z <- data.frame(Main= c('豚','牛','牛','牛','豚','牛','豚'), sub=c('有','沒有','沒有','有','有','有','沒有') , drink=c('tea','coffee','coffee','tea','coffee','tea','coffee'))
+z
+ftable(z, row.vars = 1:2, col.vars = "drink")
+ftable(z, row.vars = "Main", col.vars = "drink")
+```
+
+# p.319 用 R 呈現樞紐分析功能
+```{R}
+install.packages("plyr")
+library(plyr)
+df <- data.frame(
+  group = c(rep('個人戶', 20), rep('企業戶', 20)),
+  sex = sample(c("M", "F"), size = 40, replace = TRUE),
+  age = floor(runif(n = 40, min = 25, max = 40)),
+  bill = floor(runif(n = 40, min = 199, max = 2600))
+)
+
+ddply(df, .(group, sex), summarize,
+      mean_age = round(mean(age), 2),
+      sd_age = round(sd(age), 2),
+      sum_bill = sum(bill),
+      mean_bill = round(mean(bill), 2)
+)
+```
+# 計算筆數
+```{R}
+ddply(df, c('group','sex'), nrow)
+ddply(df, c('group','sex','age'), nrow) 
+```
+
+#p.320  用 vcd 計算列聯表百分比
+```{R}
+install.packages("vcd")
+library(vcd)
+df <- data.frame(
+  group = c(rep('個人戶', 20), rep('企業戶', 20)),
+  sex = sample(c("M", "F"), size = 40, replace = TRUE),
+  age = floor(runif(n = 40, min = 25, max = 40)),
+  bill = floor(runif(n = 40, min = 199, max = 2600))
+)
+
+# bill 百分比統計
+prop.table(df$bill)
+data.frame(df$bill,prop.table(df$bill))
+```
+
+# p .321 vcd
+```{R}
+table(df$age)
+#轉成百分比
+prop.table(table(df$age))
+#二維列聯表轉成百分比
+table(df$age, df$group)
+prop.table(table(df$age, df$group))  # 表格內全部加總 = 1
+
+prop.table(table(df$age, df$group) ,2 ) # 參數2表示各行加總 = 1
+
+prop.table(table(df$age, df$group) ,1) # 參數1表示各列加總 = 1
+```
+
+# p.324
+#交叉分析表 ftable
+```{R}
+z <- data.frame(Main= c('豚','牛','牛','牛','豚','牛','豚'), sub=c('有','沒有','沒有','有','有','有','沒有') , drink=c('tea','coffee','coffee','tea','coffee','tea','coffee'))
+z
+ftable(z, row.vars = 1:2, col.vars = "drink")
+prop.table(ftable(z, row.vars = 1:2, col.vars = "drink"))
+```
+
+# p.326 散佈圖
+```{R}
+data(iris)
+attach(iris)
+plot(Petal.Length~Petal.Width, col=Species) #散佈圖指令
+lmTrain <- lm(formula = Petal.Length ~ Petal.Width, data = iris) #簡單迴歸
+abline(reg = lmTrain$coefficients, col = "blue", lwd = 1) #函數繪製輔助線
+```
+
+# p.331 長條圖
+```{R}
+data(mtcars) # 使用dataset
+attach(mtcars)
+table(cyl) #利用汽缸數產生次數分配
+T_cyl = table(cyl)
+barplot(T_cyl , main="cyl 汽缸數次數分配表", xlab="汽缸數", col=c("red", "blue","green"), names.arg=c("4 汽缸", "6 汽缸", "8 汽缸"), border = "cyan")
+```
+
+# p.332 長條圖(橫式)
+```{R}
+barplot(T_cyl ,
+        main="cyl 汽缸數次數分配表",
+        xlab="汽缸數",
+        col=c("red", "blue", "green"),
+        names.arg=c("4 汽缸", "6 汽缸", "8 汽缸"), border = "cyan",
+        horiz=TRUE)
+```
+# p.333 長條圖(橫式，百分比)
+```{R}
+library("vcd")
+prop.table(table(cyl))
+T_cyl1 = prop.table(table(cyl))
+barplot(T_cyl1 , main="cyl 汽缸數次數分配表", xlab="汽缸數", col=c("red","blue", "green"), names.arg=c("4 汽缸", "6 汽缸", "8 汽缸"), border = "cyan",horiz=TRUE)
+```
+# p.334 分組長條圖
+```{R}
+T_cyl2 = table(am,cyl) #建立 變速器與汽缸數交叉表
+T_cyl2
+
+barplot(T_cyl2 ,
+        main="cyl 汽缸數次數分配表",
+        xlab="汽缸數",
+        col=c("red", "blue"),
+        names.arg=c("4 汽缸", "6 汽缸", "8 汽缸"),
+        border = "cyan",
+        horiz=FALSE,
+        legend = rownames(T_cyl2), beside=TRUE) # legend 是圖例 beside是分組圖還是堆疊圖
+
+barplot(T_cyl2 ,
+        main="cyl 汽缸數次數分配表",
+        xlab="汽缸數",
+        col=c("red", "blue"),
+        names.arg=c("4 汽缸", "6 汽缸", "8 汽缸"),
+        border = "cyan",
+        horiz=FALSE,
+        legend = rownames(T_cyl2), beside=FALSE) # beside是堆疊圖
+```
+
+# P.336 長條圖(百分比堆疊圖)
+```{R}
+prop.table( table(am,cyl) ,2)
+T_cyl3 = prop.table(table(am,cyl),2)
+par(las=1) #標籤=1，表示標籤文字為水平。 標籤=2，表示標籤文字為垂直。
+barplot(T_cyl3 , main="cyl 汽缸數次數百分比堆疊圖", xlab="汽缸數", col=c("red", "blue"),
+        names.arg=c("4 汽缸", "6 汽缸", "8 汽缸"), border = "cyan",
+        horiz=FALSE, legend = c('自動','手動'), beside=FALSE, cex.names=2)
+```
+
+
+# p.342 使用電信業客戶流失資料
+```{R}
+install.packages("C50")
+library(C50)
+data(churn)
+attach(churnTrain)
+par(mfrow=c(2,2)) #圖片區配置 2*2 的圖，共4個圖
+
+#設定分組組數
+hist(total_day_minutes, xlab=" 白天通話分鐘數", main="breaks =11",
+     ylab="門號數", col="red" ) # 參數breaks預設為11
+hist(total_day_minutes, xlab=" 白天通話分鐘數", main="breaks =2",
+       ylab="門號數", col="red", breaks=2 ) # 參數breaks設為2
+hist(total_day_minutes, xlab=" 白天通話分鐘數", main="breaks =20",
+       ylab="門號數", col="red", breaks=20 ) # 參數breaks設為20
+hist(total_day_minutes, xlab=" 白天通話分鐘數", main="breaks =7",
+       ylab="門號數", col="red", breaks=7 ) # 參數breaks設為7
+
+
+# p.348 利用churnTrain資料集畫boxplot
+boxplot(total_day_minutes, horizontal=TRUE, xlab="白天通話分鐘數",col="pink")
+
+# 顯示白天、晚上與半夜的通話分鐘數
+dt <- data.frame(total_eve_minutes, total_night_minutes, total_day_minutes)
+boxplot(dt, horizontal=TRUE, xlab="通話分鐘數", col="pink")
+
+# p.351 分組的盒鬚圖，檢視在不同地區流失客戶與未流失客戶於晚上通話時間的分布
+boxplot(total_eve_minutes~area_code*churn,horizontal=FALSE, xlab="夜晚通話分鐘數",col=terrain.colors(3))
+```
+
+# p.353 圓餅圖
+# 簡單圓餅圖
+```{R}
+pieces <- c(8,8,2,4,2)
+pie(pieces , labels = c('工作','睡覺','念書','打電動','聊天'), main="生活時間分配圖")
+
+# 簡單圓餅圖 加上百分比
+pct <- round(pieces/sum(pieces)*100) # 計算各個類別百分比
+lbls <- paste(c('工作','睡覺','念書','打電動','聊天'),pct,'%', sep='')
+pie(pieces , labels = lbls, main="生活時間分配圖")
+
+pie(pieces , labels = lbls, main="生活時間分配圖", cex=1.5, cex.main=2) #cex=1.5標籤字放大1.5倍； cex.main=2標題放大兩倍
+```
+
+# p.357 Line graph
+```{R}
+years <- sort(round(runif(10,2000,2010),0))
+newbornbaby <- sort(round(runif(10,200,1000),0))
+dt <- data.frame(newbornbaby,years)
+
+par(mfrow=c(3,2)) #在一張畫布上輸出3*2個圖型
+plot(newbornbaby ~ years , data=dt, type='l', col=1) #只畫線
+plot(newbornbaby ~ years , data=dt, type='b', col=2) #畫線與點
+plot(newbornbaby ~ years , data=dt, type='c', col=3) #把'b'的圖去點
+plot(newbornbaby ~ years , data=dt, type='h', col=4) #垂直線
+plot(newbornbaby ~ years , data=dt, type='s', col=5) #階梯圖
+```
+
+# 資料視覺化
+#p.364 Tree Map
+```{R}
+install.packages('treemap')
+library(treemap)
+y=data.frame(C_ID =c('群集1','群集2','群集3','群集4','群集5','群集6','群集7'),
+             C_RTO=c(0.22,0.3,0.16,0.04,0.19,0.03,0.06)
+)
+treemap(y,index=c('C_ID'),vSize='C_RTO',vColor='C_RTO')
+
+x <- read.table(file.choose(),header=T, sep=",", fileEncoding='big5') #選擇TaiwanGov.csv
+treemap(x,index=c('縣市'),vSize='面積',vColor='面積')
+treemap(x,index=c('縣市','行政區名稱'),vSize='面積',vColor='面積')
+```
+# p. 420 PCA 主成份分析
+```{R}
+install.packages("C50")
+library(C50)
+data(churn)
+data <- churnTrain[,c(-1,-3,-4,-5,-20)] # 不要第1, 3, 4, 5, 20欄
+pca_Traindt <- princomp(data , cor=T) # cor=T 單位不同
+summary(pca_Traindt)
+screeplot(pca_Traindt,type="lines") #繪製陡坡圖
+
+p <- predict(pca_Traindt) #直接算出主成分
+head(p,5)
+p[,c(1:7)] #取出7個主成分
+```
+
+# p.212 簡單迴歸
+# 自行產生藥劑量與感冒痊癒天數資料
+```{R}
+x <- c(3,3,4,3,6,8,8,9) #藥劑量
+y <- c(22,25,18,20,16,9,12,5) #感冒痊癒天數
+
+New_x <- data.frame(x=5) #預測當x=5時的痊癒天數
+
+
+# 建立一個線性迴歸模型
+Train <- data.frame(x = x, y = y)
+lmTrain <- lm(formula = y ~ x, data = Train)
+predicted <- predict(lmTrain , newdata = New_x) #預測當x=5時的痊癒天數
+predicted
+# 模型摘要
+summary(lmTrain )
+
+# 作圖
+plot(y~x , main = "依藥劑量預測痊癒天數", xlab = "藥劑量", ylab = "感冒痊癒天數", family = "STHeiti")
+points(x = New_x, y = predicted, col="green", cex = 2, pch = 16)
+abline(reg = lmTrain$coefficients, col = "red", lwd = 1) #函數繪製輔助線
+```
+```{R}
+# p.426 數值變數預測效果評估： MAPE
+y_hat=predict(lmTrain , newdata = data.frame(x=x))
+train.MAPE=mean(abs(y-y_hat)/y)
+cat("MAPE(train)=",train.MAPE*100,"%\n")
+```
+```{r}
+# p.428 多元迴歸模型實作-藥劑量、睡眠時間與感冒痊癒天數
+x1 <- c(3,3,4,3,6,8,8,9) #藥劑量
+x2 <- c(3,1,6,4,9,10,8,11) #平均每日睡眠時數
+y <- c(22,25,18,20,16,9,12,5) #感冒痊癒天數
+
+#新患者資料
+New_x1 <- 5 #預測當x=5時的痊癒天數
+New_x2 <- 7 #每日睡眠時數
+New_data <- data.frame(x1 = 5, x2=7)
+
+# 建立一個線性迴歸模型
+Train <- data.frame(x1 = x1, x2=x2, y = y)
+lmTrain <- lm(formula = y ~., data = Train)
+
+#預測新患者感冒痊癒天數
+predicted <- predict(lmTrain , newdata = New_data)
+predicted
+
+# 模型摘要
+summary(lmTrain)
+```
+
+
+```{R}
+# p.432 實作新生兒體重預測模型
+#讀入CSV檔
+babyData=read.table("d:/DataMining/給同學的檔案/babies.csv",header=T,sep = ",")
+
+#排除有遺漏值的資料列
+babyData=na.exclude(babyData)
+
+#訓練樣本70%與測試樣本30%
+n=0.3*nrow(babyData)
+test.index=sample(1:nrow(babyData),n)
+Train=babyData [-test.index,]
+Test=babyData[test.index,]
+
+#確認訓練樣本與測試樣本分不一致
+par(mfrow=c(1,2))
+#讓R的繪圖視窗切割成 1 X 2 的方塊
+hist(Train$bwt)
+hist(Test$bwt)
+
+#建模
+install.packages("rpart")
+library(rpart)
+baby.tree=rpart(bwt~. ,data=Train) # 使用CART分類回歸樹演算法
+baby.tree
+plot(baby.tree)
+text(baby.tree , cex=.8)
+```
+
+```{R}
+#variable importance
+baby.tree$variable.importance
+
+# MAPE of train and test group
+y=babyData$bwt[-test.index]
+y_hat=predict(baby.tree,newdata=Train, type="vector")
+train.MAPE=mean(abs(y-y_hat)/y)
+cat("MAPE(train)=",train.MAPE*100,"%\n")
+
+y=babyData$bwt[test.index]
+y_hat=predict(baby.tree,newdata=Test, type="vector")
+test.MAPE=mean(abs(y-y_hat)/y)
+cat("MAPE(test)=",test.MAPE*100,"%\n")
+```
